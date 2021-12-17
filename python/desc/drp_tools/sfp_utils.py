@@ -43,16 +43,16 @@ class SfpYamlFactory:
         self.overlap_db = overlap_db
         self.repo = repo
 
-    def create(self, tract, num_parts=1, visit_range=None,
+    def create(self, tracts, num_parts=1, visit_range=None,
                processed_visits=None):
         """
         Create bps yaml files for single-frame processing of the
-        visits that overlap with the specified tract.
+        visits that overlap with the specified tracts.
 
         Parameters
         ----------
-        tract : int
-            Tract number in the repo skymap.
+        tracts : list-like
+            List of tract numbers in the repo skymap to consider.
         num_parts : int [1]
             Number of parts to divide processing among the corresponding
             number of bps yaml files.
@@ -69,7 +69,8 @@ class SfpYamlFactory:
         repo = self.repo
         if num_parts < 1:
             raise ValueError('Must have num_parts >= 1.')
-        query = f'select * from overlaps where tract={tract}'
+        tract_list = ','.join([str(_) for _ in tracts])
+        query = f'select * from overlaps where tract in ({tract_list})'
         if visit_range is not None:
             query += (f' and visit >= {visit_range[0]}'
                       f' and visit <= {visit_range[1]}')
@@ -83,12 +84,13 @@ class SfpYamlFactory:
 
         indexes = np.linspace(0, len(visits) + 1, num_parts + 1, dtype=int)
 
+        tract_list = '_'.join([str(_) for _ in tracts])
         for part, (imin, imax) in enumerate(zip(indexes[:-1], indexes[1:])):
             # Use '[...]' here, and replace with '(...)' after env var
             # delimiters have been replaced.
             visit_list = '[' + ','.join([str(_) for _ in visits[imin:imax]]) \
                          + ']'
-            payloadName = f'sfp_Y1_{tract}_visits_part_{part:02d}'
+            payloadName = f'sfp_Y1_{tract_list}_visits_part_{part:02d}'
             dataQuery = f"instrument='LSSTCam-imSim' and visit in {visit_list}"
             outfile = f'bps_{payloadName}.yaml'
             print(outfile)
