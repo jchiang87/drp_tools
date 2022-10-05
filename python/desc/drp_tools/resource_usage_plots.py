@@ -20,7 +20,12 @@ def fit_upper_envelope(x, y, degree=1):
     return pars
 
 
-def make_visit_resource_usage_plots(df_visit):
+def get_percentile_value(xx, percentile=0.95):
+    index = int(percentile*len(xx))
+    return sorted(np.array(xx))[index]
+
+
+def make_visit_resource_usage_plots(df_visit, alpha=1):
     bands = 'ugrizy'
     for task in set(df_visit['task']):
         df = df_visit.query(f"task == '{task}'")
@@ -29,7 +34,7 @@ def make_visit_resource_usage_plots(df_visit):
             plt.subplot(1, 2, i)
             for band in bands:
                 my_df = df.query(f"band == '{band}'")
-                plt.hist(my_df[column], bins=30, alpha=0.5, label=band)
+                plt.hist(my_df[column], bins=30, alpha=alpha, label=band)
             plt.xlabel(column)
             plt.legend(fontsize='x-small')
         plt.tight_layout(rect=(0, 0, 1, 0.95))
@@ -37,9 +42,11 @@ def make_visit_resource_usage_plots(df_visit):
 
 
 def make_coadd_resource_usage_plots(df_coadd):
-    tasks = sorted([_ for _ in set(df_coadd['task']) if 'consolidate' not in _])
+    tasks = sorted([_ for _ in set(df_coadd['task']) if
+                    ('consolidate' not in _ and 'isolatedStar' not in _)])
     bands = 'ugrizy'
 
+    resource_params = {}
     for task in tasks:
         df = df_coadd.query(f"task == '{task}'")
         plt.figure(figsize=(8, 4))
