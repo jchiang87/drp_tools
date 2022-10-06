@@ -100,7 +100,7 @@ def fill_data_frames(task, butler, dsrefs):
             data['task'].append(task)
             data['maxRSS (GB)'].append(maxRSS)
             data['wall_time'].append(wall_time)
-            data['cpu_time (min)'].append(cpu_time)
+            data['cpu_time (m)'].append(cpu_time)
             data['band'].append(dsref.dataId.get('band', None))
 
     df_coadd = pd.DataFrame(data_coadd)
